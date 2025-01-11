@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <title>Analyse Avancée des Données</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <!-- Le même CSS que dans le fichier original -->
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --accent-color: #e74c3c;
+            --background-color: #f8f9fa;
+            --card-background: #ffffff;
+            --text-color: #2c3e50;
+            --border-radius: 12px;
+            --box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: var(--background-color);
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 2rem auto;
+            padding: 0 1.5rem;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding: 2rem;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+        }
+
+        .header h2 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            font-weight: 700;
+        }
+
+        .card {
+            background: var(--card-background);
+            border-radius: var(--border-radius);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: var(--box-shadow);
+            transition: transform 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+        }
+
+        h3 {
+            color: var(--primary-color);
+            font-size: 1.8rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 3px solid var(--secondary-color);
+        }
+
+        h4 {
+            color: var(--secondary-color);
+            font-size: 1.3rem;
+            margin: 1.5rem 0 1rem;
+        }
+
+        .table {
+            width: 100%;
+            margin-bottom: 1.5rem;
+            border-collapse: collapse;
+            box-shadow: var(--box-shadow);
+            border-radius: var(--border-radius);
+            overflow: hidden;
+        }
+
+        .table th, .table td {
+            padding: 1rem;
+            text-align: left;
+            border: none;
+        }
+
+        .table thead th {
+            background: var(--primary-color);
+            color: white;
+            font-weight: 600;
+        }
+
+        .table tbody tr:nth-child(even) {
+            background-color: rgba(52, 152, 219, 0.1);
+        }
+
+        .table tbody tr:hover {
+            background-color: rgba(52, 152, 219, 0.2);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .stat-card {
+            background: var(--card-background);
+            padding: 1.5rem;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+        }
+
+        .stat-card h4 {
+            color: var(--secondary-color);
+            margin-bottom: 1rem;
+        }
+
+        .stat-list {
+            list-style: none;
+        }
+
+        .stat-list li {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid rgba(0,0,0,0.1);
+        }
+
+        .visualization {
+            margin: 2rem 0;
+        }
+
+        .visualization img {
+            width: 100%;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+        }
+
+        .correlation-matrix {
+            overflow-x: auto;
+            margin: 1.5rem 0;
+        }
+
+        .missing-data {
+            background: #fff;
+            padding: 1.5rem;
+            border-radius: var(--border-radius);
+            margin: 1.5rem 0;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 0 1rem;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h2 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h2><i class="fas fa-chart-line"></i> Analyse Avancée des Données</h2>
+            <p>Exploration et visualisation détaillée de votre dataset</p>
+        </div>
+
+        <!-- Informations sur le Dataset -->
+        <div class="card">
+            <h3>Aperçu des Données</h3>
+            <div class="dataset-info">
+                <h4>Dimensions du Dataset</h4>
+                <p>Lignes: {{ analysis.shape.0 }} | Colonnes: {{ analysis.shape.1 }}</p>
+                <p>Types de colonnes:</p>
+                <ul class="stat-list">
+                    <li><span>Numériques:</span><span>{{ analysis.numeric_columns|join:", " }}</span></li>
+                    <li><span>Catégorielles:</span><span>{{ analysis.categorical_columns|join:", " }}</span></li>
+                </ul>
+            </div>
+            
+            <h4>Premières Lignes</h4>
+            {{ analysis.head|safe }}
+            
+            <h4>Dernières Lignes</h4>
+            {{ analysis.tail|safe }}
+        </div>
+
+        <!-- Analyse détaillée des valeurs manquantes -->
+        <div class="card">
+            <h3>Analyse des Valeurs Manquantes</h3>
+            <div class="stats-grid">
+                {% for col, info in value_counts.items %}
+                <div class="stat-card">
+                    <h4>{{ col }}</h4>
+                    <ul class="stat-list">
+                        <li><span>Valeurs manquantes</span><span>{{ info.missing_count }}</span></li>
+                        <li><span>Pourcentage manquant</span><span>{{ info.missing_percentage }}%</span></li>
+                        <li><span>Valeurs uniques</span><span>{{ info.unique_count }}</span></li>
+                    </ul>
+                    <h4>Top 5 des valeurs les plus fréquentes:</h4>
+                    <ul class="stat-list">
+                        {% for value, count in info.top_values.items %}
+                        <li><span>{{ value }}</span><span>{{ count }}</span></li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Statistiques descriptives -->
+        <div class="card">
+            <h3>Statistiques Descriptives</h3>
+            <div class="stats-grid">
+                {% for col, stats in numeric_stats.items %}
+                <div class="stat-card">
+                    <h4>{{ col }}</h4>
+                    <ul class="stat-list">
+                        <li><span>Moyenne</span><span>{{ stats.mean|floatformat:2 }}</span></li>
+                        <li><span>Médiane</span><span>{{ stats.median|floatformat:2 }}</span></li>
+                        <li><span>Écart-type</span><span>{{ stats.std|floatformat:2 }}</span></li>
+                        <li><span>Variance</span><span>{{ stats.var|floatformat:2 }}</span></li>
+                        <li><span>Min</span><span>{{ stats.min|floatformat:2 }}</span></li>
+                        <li><span>Max</span><span>{{ stats.max|floatformat:2 }}</span></li>
+                        <li><span>Q1</span><span>{{ stats.q1|floatformat:2 }}</span></li>
+                        <li><span>Q3</span><span>{{ stats.q3|floatformat:2 }}</span></li>
+                        <li><span>IQR</span><span>{{ stats.iqr|floatformat:2 }}</span></li>
+                        <li><span>Skewness</span><span>{{ stats.skew|floatformat:2 }}</span></li>
+                        <li><span>Kurtosis</span><span>{{ stats.kurtosis|floatformat:2 }}</span></li>
+                    </ul>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Visualisations univariées -->
+        <div class="card">
+            <h3>Distributions Univariées</h3>
+            {% for plot in plots %}
+            {% if "Distribution de" in plot.title %}
+            <div class="visualization">
+                <h4>{{ plot.title }}</h4>
+                <img src="data:image/png;base64,{{ plot.image }}" alt="{{ plot.title }}">
+            </div>
+            {% endif %}
+            {% endfor %}
+        </div>
+
+        <!-- Analyse bivariée détaillée -->
+        <div class="card">
+            <h3>Analyse Bivariée</h3>
+            
+            <!-- Corrélations les plus fortes -->
+            {% if bivariate.top_correlations %}
+            <h4>Corrélations les Plus Fortes</h4>
+            <div class="stats-grid">
+                {% for corr in bivariate.top_correlations %}
+                <div class="stat-card">
+                    <h4>{{ corr.variables }}</h4>
+                    <ul class="stat-list">
+                        <li><span>Corrélation</span><span>{{ corr.correlation }}</span></li>
+                    </ul>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <!-- Matrices de corrélation et covariance -->
+            <div class="correlation-matrix">
+                <h4>Matrice de Corrélation</h4>
+                {{ bivariate.correlation|safe }}
+            </div>
+            
+            <div class="correlation-matrix">
+                <h4>Matrice de Covariance</h4>
+                {{ bivariate.covariance|safe }}
+            </div>
+
+            <!-- Visualisations bivariées -->
+            <h4>Visualisations Bivariées</h4>
+            {% for plot in plots %}
+            {% if "Heatmap" in plot.title or "Pairplot" in plot.title %}
+            <div class="visualization">
+                <h4>{{ plot.title }}</h4>
+                <img src="data:image/png;base64,{{ plot.image }}" alt="{{ plot.title }}">
+            </div>
+            {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+</body>
+</html>
